@@ -1,9 +1,9 @@
 use crate::string_ext::StringExt;
 use crate::terminal_utils;
+use hex_literal::hex;
 use inquire::validator::Validation;
 use inquire::{CustomType, Text};
-use sha1::Digest;
-use sha2::Sha256;
+use sha2::{Digest, Sha256};
 
 pub fn main() {
 	let mut string1;
@@ -45,15 +45,17 @@ pub fn main() {
 	let string3 = string1.unwrap() + &string2.unwrap();
 	terminal_utils::clear_terminal();
 	let mut hasher = Sha256::new();
+
 	hasher.update(string3);
 	let hash = hasher.finalize();
+	println!("{:?}", hash.to_vec());
 	print!("The {amount} first characters of the hash is : ");
 	for (i, b) in hash.into_iter().enumerate() {
-		if i == amount as usize {
+		/*if i == amount as usize {
 			break;
 		}
-		print!("{}", b.to_string().as_bytes()[i] as char);
-		terminal_utils::flush();
+		print!("{b:x} ");
+		terminal_utils::flush();*/
 	}
 	println!();
 }

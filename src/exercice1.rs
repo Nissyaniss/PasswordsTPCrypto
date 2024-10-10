@@ -1,8 +1,7 @@
 use crate::string_ext::StringExt;
 use crate::terminal_utils;
 use inquire::Text;
-use sha1::Digest;
-use sha2::Sha256;
+use sha2::{Digest, Sha256};
 
 pub fn main() {
 	let mut string1;
@@ -37,7 +36,7 @@ pub fn main() {
 		if i == 4 {
 			break;
 		}
-		print!("{b:02x}");
+		print!("{b:x}");
 		terminal_utils::flush();
 	}
 	println!();

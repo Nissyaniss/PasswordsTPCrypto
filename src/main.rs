@@ -23,7 +23,7 @@ fn main() {
 		match ans {
 			Ok("Exercice 1") => exercice1::main(),
 			Ok("Exercice 2") => exercice2::main(),
-			Ok("Quit") => exit(1),
+			Ok("Quit") => exit(0),
 			Ok(choice) => println!("{choice} NOT FINIHED!"),
 			Err(_) => println!("There was an error, please try again"),
 		}
