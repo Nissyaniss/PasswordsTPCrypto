@@ -91,7 +91,7 @@ fn generate_password(path: &str) {
 	println!("{}", &hex::encode(hasher.finalize())[..amount as usize]);
 }
 
-fn change_password(path: &str, is_first_password: bool) {
+pub fn change_password(path: &str, is_first_password: bool) {
 	if is_first_password {
 		File::create(path).unwrap();
 		let password = Text::new("Quel est votre mot de passe maitre ?")
