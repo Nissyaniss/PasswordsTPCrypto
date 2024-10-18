@@ -10,66 +10,52 @@ use sha2::{Digest, Sha256};
 use crate::{string_ext::StringExt, terminal_utils};
 
 pub fn main() {
+	let is_windows = cfg!(windows);
+	let path = if is_windows {
+		match option_env!("USERPROFILE") {
+			Some(_) => std::env::var("USERPROFILE").unwrap() + "\\.mpwd.txt",
+			None => exit(1),
+		}
+	} else {
+		match option_env!("HOME") {
+			Some(_) => env!("HOME").to_owned() + "/.mpwd.txt",
+			None => exit(1),
+		}
+	};
+
+	if !Path::new(&path).exists() {
+		change_password(&path, true);
+		terminal_utils::clear_terminal();
+	}
+
 	loop {
 		let options = vec![
 			"Changer de mot de passe maitre",
 			"Générer un mot de passe",
-			"Quit",
+			"Quitté",
 		];
 
 		let ans = Select::new("Options :", options).prompt();
 
 		match ans {
 			Ok("Changer de mot de passe maitre") => {
-				if cfg!(windows) {
-					let home = match option_env!("USERPROFILE") {
-						Some(_) => option_env!("USERPROFILE"),
-						None => exit(1),
-					};
-					if Path::new(&format!("{}\\.mpwd.txt", home.unwrap())).exists() {
-						change_password(&format!("{}\\mdpw.txt", home.unwrap()), true);
-					} else {
-						change_password(&format!("{}\\mdpw.txt", home.unwrap()), false);
-					}
-				} else {
-					let home = match option_env!("HOME") {
-						Some(_) => option_env!("HOME"),
-						None => exit(1),
-					};
-					if Path::new(&format!("{}/.mpwd.txt", home.unwrap())).exists() {
-						change_password(&format!("{}/mdpw.txt", home.unwrap()), true);
-					} else {
-						change_password(&format!("{}/mdpw.txt", home.unwrap()), false);
-					}
-				}
+				change_password(&path, false);
 			}
 			Ok("Générer un mot de passe") => {
-				if cfg!(windows) {
-					let home = match option_env!("USERPROFILE") {
-						Some(_) => option_env!("USERPROFILE"),
-						None => exit(1),
-					};
-					generate_password(&format!("{}\\mdpw.txt", home.unwrap()));
-				} else {
-					let home = match option_env!("HOME") {
-						Some(_) => option_env!("HOME"),
-						None => exit(1),
-					};
-					generate_password(&format!("{}/mdpw.txt", home.unwrap()));
-				}
+				generate_password(&path);
 			}
-			Ok("Quit") => {
+			Ok("Quitté") => {
 				terminal_utils::clear_terminal();
 				return;
 			}
-			Ok(choice) => println!("{choice} NOT FINIHED!"),
-			Err(_) => println!("There was an error, please try again"),
+			Ok(choice) => println!("{choice} PAS FINIT/IMPLÉMENTÉ!"),
+			Err(_) => println!("Il y a eu une erreur"),
 		}
 	}
 }
 
 fn generate_password(path: &str) {
-	let password = fs::read_to_string(path).expect("Unable to read file");
+	let password = fs::read_to_string(path).expect("Impossible de lire le fichier");
 	let mut tag;
 
 	loop {
@@ -82,12 +68,12 @@ fn generate_password(path: &str) {
 		}
 	}
 
-	let amount = CustomType::<u32>::new("The size of the output wanted ?")
-		.with_error_message("Please type a valid number between 1 and 12")
+	let amount = CustomType::<u32>::new("La taille de votre mot de passe généré ?")
+		.with_error_message("Une valeur valide doit être entre 1 et 12")
 		.with_validator(|val: &u32| {
 			if *val > 12u32 {
 				Ok(Validation::Invalid(
-					"Please type a valid number between 1 and 12".into(),
+					"Une valeur valide doit être entre 1 et 12".into(),
 				))
 			} else {
 				Ok(Validation::Valid)
@@ -96,12 +82,12 @@ fn generate_password(path: &str) {
 		.prompt()
 		.unwrap();
 
-	let string3 = password + &tag.unwrap();
+	let password_final = password + &tag.unwrap();
 	terminal_utils::clear_terminal();
 	let mut hasher = Sha256::new();
-	hasher.update(string3);
+	hasher.update(password_final);
 
-	print!("The {amount} first characters of the hash is : ");
+	print!("Les {amount} premiers caractère de votre mot de passe sont : ");
 	println!("{}", &hex::encode(hasher.finalize())[..amount as usize]);
 }
 
@@ -111,17 +97,17 @@ fn change_password(path: &str, is_first_password: bool) {
 		let password = Text::new("Quel est votre mot de passe maitre ?")
 			.with_validator(|val: &str| {
 				if val.contains(char::is_whitespace) {
-					Ok(Validation::Invalid("Sans espaces stp".into()))
+					Ok(Validation::Invalid("Sans espaces".into()))
 				} else {
 					Ok(Validation::Valid)
 				}
 			})
 			.prompt();
 		if password.is_ok() {
-			fs::write(path, password.unwrap()).expect("Unable to write file");
+			fs::write(path, password.unwrap()).expect("Impossible d'écrire le fichier");
 		}
 	} else {
-		let ancient_password = fs::read_to_string(path).expect("Unable to read file");
+		let ancient_password = fs::read_to_string(path).expect("Impossible d'écrire le fichier");
 		let mut tries: u32 = 0;
 		loop {
 			let password_check = Text::new("Quel est votre mot de passe maitre actuel ?")
@@ -137,7 +123,7 @@ fn change_password(path: &str, is_first_password: bool) {
 				break;
 			}
 			if tries == 2 {
-				println!("Too many tries");
+				println!("Trop d'essais");
 				exit(1);
 			}
 			tries += 1;
@@ -145,15 +131,16 @@ fn change_password(path: &str, is_first_password: bool) {
 		let new_password = Text::new("Quel est votre nouveaux mot de passe maitre ?")
 			.with_validator(|val: &str| {
 				if val.contains(char::is_whitespace) {
-					Ok(Validation::Invalid("Sans espaces stp".into()))
+					Ok(Validation::Invalid("Sans espaces".into()))
 				} else {
 					Ok(Validation::Valid)
 				}
 			})
 			.prompt();
 		if new_password.is_ok() {
-			fs::write(path, new_password.unwrap()).expect("Unable to write file");
+			fs::write(path, new_password.unwrap()).expect("Impossible d'écrire le fichier");
 		}
 	}
-	println!("Password saved");
+	terminal_utils::clear_terminal();
+	println!("Password sauvegardé");
 }
