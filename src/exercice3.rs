@@ -18,7 +18,7 @@ pub fn main() {
 		}
 	} else {
 		match option_env!("HOME") {
-			Some(_) => env!("HOME").to_owned() + "/.mpwd.txt",
+			Some(_) => std::env::var("HOME").unwrap() + "/.mpwd.txt",
 			None => exit(1),
 		}
 	};
