@@ -1,7 +1,6 @@
 use inquire::Select;
 use std::process::exit;
 
-mod char_ext;
 mod exercice1;
 mod exercice2;
 mod exercice3;

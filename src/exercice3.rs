@@ -104,16 +104,16 @@ pub fn change_password(path: &str, is_first_password: bool) {
 			})
 			.prompt();
 		if password.is_ok() {
-			fs::write(path, password.unwrap()).expect("Impossible d'écrire le fichier");
+			fs::write(path, password.unwrap()).unwrap();
 		}
 	} else {
-		let ancient_password = fs::read_to_string(path).expect("Impossible d'écrire le fichier");
+		let ancient_password = fs::read_to_string(path).unwrap();
 		let mut tries: u32 = 0;
 		loop {
 			let password_check = Text::new("Quel est votre mot de passe maitre actuel ?")
 				.with_validator(|val: &str| {
 					if val.contains(char::is_whitespace) {
-						Ok(Validation::Invalid("Sans espaces stp".into()))
+						Ok(Validation::Invalid("Sans espaces".into()))
 					} else {
 						Ok(Validation::Valid)
 					}

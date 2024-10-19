@@ -1,84 +1,93 @@
-use std::{fs, path::Path, process::exit};
-
+use inquire::{validator::Validation, Confirm, CustomType, Text};
+use itertools::{iproduct, Itertools};
 use sha2::{Digest, Sha256};
 
-use crate::{
-	char_ext::CharExt,
-	exercice3,
-	string_ext::{self, ASCIITABLE},
-	terminal_utils,
-};
+use crate::{string_ext, terminal_utils};
 
 pub fn main() {
-	let path = if cfg!(windows) {
-		match option_env!("USERPROFILE") {
-			Some(_) => std::env::var("USERPROFILE").unwrap() + "\\.mpwd.txt",
-			None => exit(1),
-		}
-	} else {
-		match option_env!("HOME") {
-			Some(_) => std::env::var("HOME").unwrap() + "/.mpwd.txt",
-			None => exit(1),
-		}
-	};
+	let password = Text::new("Quel est le mot de passe choisi (10 characters min et max) ?")
+		.with_validator(|val: &str| {
+			if val.len() == 10 {
+				Ok(Validation::Valid)
+			} else {
+				Ok(Validation::Invalid(
+					"Un mot de passe doit faire 10 caractere !".into(),
+				))
+			}
+		})
+		.prompt()
+		.unwrap();
+	let amount = CustomType::<usize>::new("La taille de votre mot de passe généré ?")
+		.with_validator(|val: &usize| {
+			if *val > 3usize || *val < 1usize {
+				Ok(Validation::Invalid(
+					"Une valeur valide doit être entre 1 et 3".into(),
+				))
+			} else {
+				Ok(Validation::Valid)
+			}
+		})
+		.prompt()
+		.unwrap();
+	let is_three_collision = Confirm::new("Est ce que vous voulez faire 3 collisions?")
+		.with_default(false)
+		.prompt()
+		.unwrap();
 
-	if !Path::new(&path).exists() {
-		exercice3::change_password(&path, true);
-		terminal_utils::clear_terminal();
-	}
-	let password = fs::read_to_string(path).unwrap();
-
-	let tag = "Unilim";
-
-	let password_final = password + &tag;
-	let mut hasher = Sha256::new();
-	hasher.update(password_final);
-	let hashed_password = hasher.finalize();
-
-	let mut test = "aa~".to_string();
-	for i in 0..5 {
-		println!("{} : {}", i, test);
-		test = update_password(test);
-	}
-	println!("{}", test);
-	/*	loop {
-
-		}
-	*/ /*	loop {
-		 tag = Text::new("Quelle est votre tag ?").prompt();
-		 if tag.is_ok()
-			 && tag.as_ref().unwrap().is_ascii_printable()
-			 && !tag.as_ref().unwrap().is_empty()
-		 {
-			 break;
-		 }
-	 }*/
+	find_collisions(password, amount, is_three_collision);
 }
 
-fn update_password(mut password: String) -> String {
-	for i in (0..password.len()).rev() {
-		let last_ascii_char = string_ext::ASCIITABLE.chars().nth(93).unwrap();
-		let first_ascii_char = string_ext::ASCIITABLE.chars().next().unwrap();
-		let current_char = password.chars().nth(i).unwrap();
-		println!("{} - 1 < {}", i, password.len() - 1);
-		if current_char == last_ascii_char {
-			password.replace_range(
-				i..=i,
-				ASCIITABLE.chars().next().unwrap().to_string().as_str(),
-			);
-		} else if i - 1 < password.len() - 1
-			&& password.chars().nth(i - 1).unwrap() != first_ascii_char
-		{
-			password.replace_range(
-				i..=i,
-				ASCIITABLE
-					.chars()
-					.nth(current_char.get_ascii_printable_position().unwrap() + 1)
-					.unwrap()
-					.to_string()
-					.as_str(),
-			);
+fn find_collisions(password: String, amount: usize, is_three_collision: bool) {
+	let hashed_password_unilim = hash_password(password.clone(), "Unilim", amount);
+	let hashed_password_amazon = hash_password(password.clone(), "Amazon", amount);
+	let hashed_password_netflix = hash_password(password, "Netflix", amount);
+
+	let mut tries: u32 = 0;
+
+	for (password, i) in iproduct!(
+		string_ext::ASCIITABLE.iter().copied(),
+		string_ext::ASCIITABLE.iter().copied(),
+		string_ext::ASCIITABLE.iter().copied(),
+		string_ext::ASCIITABLE.iter().copied(),
+		string_ext::ASCIITABLE.iter().copied(),
+		string_ext::ASCIITABLE.iter().copied(),
+		string_ext::ASCIITABLE.iter().copied(),
+		string_ext::ASCIITABLE.iter().copied(),
+		string_ext::ASCIITABLE.iter().copied(),
+		string_ext::ASCIITABLE.iter().copied()
+	)
+	.zip(0..)
+	{
+		let password = [
+			password.0, password.1, password.2, password.3, password.4, password.5, password.6,
+			password.7, password.8, password.8, password.9,
+		]
+		.iter()
+		.join("");
+
+		if is_three_collision {
+			if hash_password(password.clone(), "Unilim", amount) == hashed_password_unilim
+				&& hash_password(password.clone(), "Netflix", amount) == hashed_password_netflix
+				&& hash_password(password.clone(), "Amazon", amount) == hashed_password_amazon
+			{
+				println!("Collisions trouvé sur {password} au bout de {i} essais");
+			}
+		} else if hash_password(password.clone(), "Unilim", amount) == hashed_password_unilim {
+			terminal_utils::clear_terminal();
+			println!("Collisions trouvé sur {password} au bout de {i} essais");
+			break;
+		}
+
+		tries += 1;
+		if tries % 1_000_000 == 0 {
+			println!("Essais : {tries}");
 		}
 	}
-	password
+}
+
+fn hash_password(password: String, tag: &str, size: usize) -> Vec<u8> {
+	let password_final = password + tag;
+	let mut hasher = Sha256::new();
+	hasher.update(password_final);
+	hasher.finalize()[0..size].to_vec()
 }
