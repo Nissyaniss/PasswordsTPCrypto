@@ -32,7 +32,7 @@ pub fn main() {
 		let options = vec![
 			"Changer de mot de passe maitre",
 			"Générer un mot de passe",
-			"Quitté",
+			"Quitter",
 		];
 
 		let ans = Select::new("Options :", options).prompt();
@@ -55,7 +55,7 @@ pub fn main() {
 }
 
 fn generate_password(path: &str) {
-	let password = fs::read_to_string(path).expect("Impossible de lire le fichier");
+	let password = fs::read_to_string(path).unwrap();
 	let mut tag;
 
 	loop {
@@ -137,10 +137,10 @@ pub fn change_password(path: &str, is_first_password: bool) {
 				}
 			})
 			.prompt();
-		if new_password.is_ok() {
-			fs::write(path, new_password.unwrap()).expect("Impossible d'écrire le fichier");
+		if let Ok(new_password) = new_password {
+			fs::write(path, new_password).unwrap();
 		}
 	}
 	terminal_utils::clear_terminal();
-	println!("Password sauvegardé");
+	println!("Mot de passe sauvegardé");
 }

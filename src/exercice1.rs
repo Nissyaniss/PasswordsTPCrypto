@@ -7,7 +7,7 @@ pub fn main() {
 	let mut string1;
 	let mut string2;
 	loop {
-		string1 = Text::new("What is your first string ?").prompt();
+		string1 = Text::new("Quel est votre mot de passe ?").prompt();
 		if string1.is_ok()
 			&& string1.as_ref().unwrap().is_ascii_printable()
 			&& !string1.as_ref().unwrap().is_empty()
@@ -17,7 +17,7 @@ pub fn main() {
 	}
 
 	loop {
-		string2 = Text::new("What is your second string ?").prompt();
+		string2 = Text::new("Quel est votre tag ?").prompt();
 		if string2.is_ok()
 			&& string2.as_ref().unwrap().is_ascii_printable()
 			&& !string2.as_ref().unwrap().is_empty()
@@ -31,7 +31,7 @@ pub fn main() {
 	let mut hasher = Sha256::new();
 	hasher.update(string3);
 	let hash = hasher.finalize();
-	print!("The 8 first characters of the hash is : ");
+	print!("Les 8 premiers caractere de votre hash est : ");
 	for (i, b) in hash.into_iter().enumerate() {
 		if i == 4 {
 			break;

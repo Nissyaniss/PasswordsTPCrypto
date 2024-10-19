@@ -17,7 +17,7 @@ fn main() {
 			"Exercice 2",
 			"Exercice 3",
 			"Exercice 4",
-			"Quit",
+			"Quitter",
 		];
 
 		let ans = Select::new("Exercice que tu veux", options).prompt();
