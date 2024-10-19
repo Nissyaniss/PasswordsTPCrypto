@@ -46,6 +46,6 @@ pub fn main() {
 	let mut hasher = Sha256::new();
 	hasher.update(string3);
 
-	print!("Les {amount} premiers caractere de votre hash sont : ");
+	print!("Les {amount} premiers caractère de votre hash sont : ");
 	println!("{}", &hex::encode(hasher.finalize())[..amount as usize]);
 }

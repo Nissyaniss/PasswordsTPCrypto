@@ -75,7 +75,7 @@ fn find_collisions(password: String, amount: usize, is_three_collision: bool) {
 		} else if hash_password(password.clone(), "Unilim", amount) == hashed_password_unilim {
 			terminal_utils::clear_terminal();
 			println!("Collisions trouvé sur {password} au bout de {i} essais");
-			break;
+			return;
 		}
 
 		tries += 1;

@@ -27,7 +27,7 @@ fn main() {
 			Ok("Exercice 2") => exercice2::main(),
 			Ok("Exercice 3") => exercice3::main(),
 			Ok("Exercice 4") => exercice4::main(),
-			Ok("Quit") => exit(0),
+			Ok("Quitter") => exit(0),
 			Ok(choice) => println!("{choice} NOT FINIHED!"),
 			Err(_) => println!("There was an error, please try again"),
 		}

@@ -44,7 +44,7 @@ pub fn main() {
 			Ok("Générer un mot de passe") => {
 				generate_password(&path);
 			}
-			Ok("Quitté") => {
+			Ok("Quitter") => {
 				terminal_utils::clear_terminal();
 				return;
 			}
@@ -103,8 +103,8 @@ pub fn change_password(path: &str, is_first_password: bool) {
 				}
 			})
 			.prompt();
-		if password.is_ok() {
-			fs::write(path, password.unwrap()).unwrap();
+		if let Ok(password) = password {
+			fs::write(path, password).unwrap();
 		}
 	} else {
 		let ancient_password = fs::read_to_string(path).unwrap();

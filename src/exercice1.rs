@@ -31,7 +31,7 @@ pub fn main() {
 	let mut hasher = Sha256::new();
 	hasher.update(string3);
 	let hash = hasher.finalize();
-	print!("Les 8 premiers caractere de votre hash est : ");
+	print!("Les 8 premiers caractère de votre hash est : ");
 	for (i, b) in hash.into_iter().enumerate() {
 		if i == 4 {
 			break;
